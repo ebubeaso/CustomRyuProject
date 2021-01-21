@@ -1,9 +1,9 @@
-sh ovs-vsctl set bridge s1 protocols=OpenFlow15
-sh ovs-ofctl -O OpenFlow15 add-flow s1 "table=0, priority=100, ip, nw_src=10.0.0.1, nw_dst=10.0.0.2, actions=OUTPUT:2"
-sh ovs-ofctl -O OpenFlow15 add-flow s1 "table=0, priority=100, ip, nw_src=10.0.0.2, nw_dst=10.0.0.1, actions=OUTPUT:1"
+sh ovs-vsctl set bridge s1 protocols=OpenFlow13
+sh ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=100, ip, nw_src=10.0.0.1, nw_dst=10.0.0.2, actions=OUTPUT:2"
+sh ovs-ofctl -O OpenFlow13 add-flow s1 "table=0, priority=100, ip, nw_src=10.0.0.2, nw_dst=10.0.0.1, actions=OUTPUT:1"
 sh ovs-vsctl set port s1-eth3 qos=@newqos -- --id=@newqos create qos type=linux-htb other-config:max-rate=5000000 queues:0=@newqueue -- --id=@newqueue create queue other-config:min-rate=3000000 other-config:max-rate=3000000
 sh ovs-vsctl set port s1-eth2 qos=@newqos -- --id=@newqos create qos type=linux-htb other-config:max-rate=5000000 queues:0=@newqueue -- --id=@newqueue create queue other-config:min-rate=3000000 other-config:max-rate=300000
-sh ovs-ofctl -O OpenFlow15 add-group s1 "type=all, group_id=1, bucket=output:2"
-sh ovs-ofctl -O OpenFlow15 add-group s1 "type=all, group_id=0, bucket=output:3"
-sh ovs-ofctl -O OpenFlow15 add-meter s1 "meter=1,kbps,burst,band=type=drop,rate=40000,burst_size=40000"
-sh ovs-ofctl -O OpenFlow15 add-meter s1 "meter=2,kbps,band=type=drop,rate=20000"
+sh ovs-ofctl -O OpenFlow13 add-group s1 "type=all, group_id=1, bucket=output:2"
+sh ovs-ofctl -O OpenFlow13 add-group s1 "type=all, group_id=0, bucket=output:3"
+sh ovs-ofctl -O OpenFlow13 add-meter s1 "meter=1,kbps,burst,band=type=drop,rate=40000,burst_size=40000"
+sh ovs-ofctl -O OpenFlow13 add-meter s1 "meter=2,kbps,band=type=drop,rate=20000"
