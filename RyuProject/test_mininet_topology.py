@@ -18,7 +18,7 @@ from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.log import setLogLevel
 from mininet.cli import CLI
-from mininet.node import RemoteController
+from mininet.node import RemoteController, OVSSwitch
 
 class TestTopo(Topo):
     """Builds the Mininet virtual topology"""
@@ -35,8 +35,10 @@ class TestTopo(Topo):
 def runTopology():
     topos=TestTopo()
     # make the network controller
-    c0 = RemoteController('c0', ip='127.0.0.1', port=6653)
-    net = Mininet(topo=topos, controller=c0)
+    c0 = RemoteController('c0', ip='127.0.0.1', port=6653, protocols='OpenFlow13')
+    net = Mininet(topo=topos, switch=OVSSwitch, build=False, cleanup=True)
+    net.addController(c0)
+    net.build()
     net.start()
     """The reason why the script_for_mininet_hackathon is because the
     script has some group entries, meter entries and queues to add in so 

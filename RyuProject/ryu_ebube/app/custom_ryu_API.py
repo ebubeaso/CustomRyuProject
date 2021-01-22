@@ -4,7 +4,8 @@ that came with this framework. I want to be able to make my own custom APIs that
 can allow me to programmatically add flows to OpenFlow devices on a network to better
 forward packets to where they need to go. APIs are the future of network programmability
 and this is a great way of doing so. I will be taking my time to develop this and testing
-it out to see if it works. This will only be using OpenFlow versions 1.3 and 1.5.
+it out to see if it works. This will only be using OpenFlow versions 1.3 for compatibility
+purposes with the Open vSwitch.
 """
 # Importing some modules that were used in the original ofctl_rest application.
 import logging
@@ -18,9 +19,7 @@ from ryu.controller.handler import MAIN_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.exception import RyuException
 from ryu.ofproto import ofproto_v1_3
-from ryu.ofproto import ofproto_v1_5
 from ryu.lib import ofctl_v1_3
-from ryu.lib import ofctl_v1_5
 from ryu.app.wsgi import ControllerBase
 from ryu.app.wsgi import Response
 from ryu.app.wsgi import WSGIApplication
@@ -28,8 +27,7 @@ from ryu.app.wsgi import WSGIApplication
 the_log = logging.getLogger('Ryu API') # used to log any issues with the application
 
 supported_of_versions = {
-    ofproto_v1_3.OFP_VERSION: ofctl_v1_3,
-    ofproto_v1_5.OFP_VERSION: ofctl_v1_5,
+    ofproto_v1_3.OFP_VERSION: ofctl_v1_3
 }
 # Handle errors for commands and ports, like done in ofctl_rest
 
@@ -194,13 +192,7 @@ class InfoController(ControllerBase):
         """Get the queue configuration from an OpenFlow switch"""
         if port == "ALL":
             port = None
-        """Check what OpenFlow version you are using"""
-        if of_version == ofctl_v1_3:
-            return of_version.get_queue_config(dpath, self.waiters, port)
-        else:
-            if queue == 'ALL':
-                queue = None
-            return of_version.get_queue_desc(dpath, self.waiters, port, queue)
+        return of_version.get_queue_config(dpath, self.waiters, port)
 
     @device_data
     def meter_specs(self, req, dpath, of_version, **_kwargs):
@@ -212,12 +204,8 @@ class InfoController(ControllerBase):
         """Get the table meter configuration from an Openflow switch"""
         if meterID == "ALL":
             meterID = None
-        """Have to check the OpenFlow version since OpenFlow 1.5 uses meter_desc, not meter_config"""
-        if of_version == ofctl_v1_3:
-            return of_version.get_meter_config(dpath, self.waiters, meterID)
-        if of_version == ofctl_v1_5:
-            return of_version.get_meter_desc(dpath, self.waiters, meterID)
-
+        return of_version.get_meter_config(dpath, self.waiters, meterID)
+        
     @device_data
     def meter_info(self, req, dpath, of_version, meterID=None, **_kwargs):
         """This gets the information about a meter of an OpenFlow switch"""
@@ -235,27 +223,17 @@ class InfoController(ControllerBase):
     @device_data
     def group_description(self, req, dpath, of_version, groupID=None, **_kwargs):
         """Get the group table description of an OpenFlow switch"""
-        if of_version == ofctl_v1_3:
-            return of_version.get_group_desc(dpath, self.waiters)
-        else:
-            """This only runs if you are using OpenFlow 1.5 because this version
-            of OpenFlow includes the group ID as an option"""
-            return of_version.get_group_desc(dpath, self.waiters, groupID)
-    
+        return of_version.get_group_desc(dpath, self.waiters)
+            
     @device_data
     def group_info(self, req, dpath, of_version, **_kwargs):
         """Get the features of a group table from an OpenFlow switch"""
         return of_version.get_group_features(dpath, self.waiters)
 
     @device_data
-    def port_description(self, req, dpath, of_version, port_no=None, **_kwargs):
-        """Get port description info from an OpenFlow switch. OpenFlow 1.5 has the
-        option to specify a port number to use"""
-        if of_version == ofproto_v1_3:
-            return of_version.get_port_desc(dpath, self.waiters)
-        else:
-            """Specify a port number (optional)"""
-            return of_version.get_port_desc(dpath, self.waiters, port_no)
+    def port_description(self, req, dpath, of_version, **_kwargs):
+        """Get port description info from an OpenFlow switch"""
+        return of_version.get_port_desc(dpath, self.waiters)
     
     @device_data
     def controler_role(self, req, dpath, of_version, **_kwargs):
@@ -354,7 +332,7 @@ class InfoController(ControllerBase):
 # The actual REST API class that maps the URIs to the functions to run
 class RestApi(app_manager.RyuApp):
     # Supported OpenFlow versions
-    OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION,ofproto_v1_5.OFP_VERSION]
+    OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
 
     # setup the contexts, WSGIApplication is the web server feature of Ryu
     _CONTEXTS = {
